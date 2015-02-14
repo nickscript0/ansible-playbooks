@@ -24,7 +24,7 @@
     line="{{ item.line }}" 
     state=present
   with_items:
-    - { regexp: '^Title = "(httpd|nginx)"', line: 'Title = "nginx"' }
+    - { regexp: '^Title = \"(httpd|nginx)\"', line: 'Title = \"nginx\"' }
     - { regexp: '^LogFile = (http|nginx)', line: 'LogFile = nginx' }
 
 - name: Update logwatch nginx-error.conf from defaults
@@ -35,7 +35,7 @@
     line="{{ item.line }}" 
     state=present
   with_items:
-    - { regexp: '^Title = (httpd|nginx) errors', line: 'Title = nginx errors' }
+    - { regexp: '^Title = (http|nginx) errors', line: 'Title = nginx errors' }
     - { regexp: '^LogFile = (http|nginx)-error', line: 'LogFile = nginx-error' }
 
 - name: Create nginx logfiles configs
