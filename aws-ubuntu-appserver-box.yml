@@ -1,0 +1,44 @@
+# aws-ubuntu-appserver-box.yml
+
+---
+- hosts: localhost # This will provision AWS directly so use localhost instead of hosts file
+  connection: local
+  gather_facts: False
+  #vars:
+    #- logwatch_email: defined in hosts
+  
+  tasks:
+    - name: Provision a set of instances
+      ec2:
+        key_name: deploy-oregon-key-pair
+        group: deploy_SG_oregon
+        instance_type: t2.micro
+        image: ami-29ebb519
+        wait: true
+        exact_count: 0
+        count_tag:
+          Name: Ansible-Test
+        instance_tags:
+          Name: Ansible-Test
+        zone: us-west-2b
+        region: us-west-2
+
+      register: ec2
+
+    - name: Add all instance public IPs to host group
+      add_host: hostname={{ item.public_ip }} groupname=ec2hosts
+      with_items: ec2.instances
+    
+    # The reason ec2.instances isn't populated is because it's already been created,
+    # so from here we now have to use the dynamic inventory script to proceed,
+    # unless I were to destroy the existing instance
+    - debug: var=ec2.instances
+    
+- hosts: ec2hosts
+  name: configuration play
+  user: ec2-user
+  gather_facts: true
+  tasks:
+    - include: tasks-bootstrap-ubuntu.yml
+  #- include: tasks-install-nginx.yml
+  #- include: tasks-install-fb-penalty-app.yml

@@ -1,0 +1,14 @@
+---
+# Bootstrap an Ubuntu box
+
+- name: Update APT package cache and run apt-get upgrade
+  apt: update_cache=yes upgrade=yes
+
+- name: Install fail2ban
+  apt: pkg=fail2ban state=installed
+
+- name: Install logwatch
+  apt: pkg=logwatch state=installed
+
+- name: Make logwatch mail {{logwatch_email}} daily
+  lineinfile: dest=/etc/cron.daily/00logwatch regexp="^/usr/sbin/logwatch" line="/usr/sbin/logwatch --output mail --mailto {{logwatch_email}} --detail high" state=present create=yes

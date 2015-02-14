@@ -1,0 +1,33 @@
+---
+# Install nginx
+
+- name: Install nginx
+  apt: pkg=nginx state=installed
+
+- name: Install logwatch default files to logwatch for nginx
+  command: 
+    cp /usr/share/logwatch/{{ item.src }} /etc/logwatch/{{ item.dst }} 
+    creates=/etc/logwatch{{ item.dst }}
+  with_items:
+    - { src: 'scripts/services/http', dst: 'scripts/services/nginx' }
+    - { src: 'scripts/services/http-error', dst: 'scripts/services/nginx-error' }
+    - { src: 'default.conf/services/http.conf', dst: 'conf/services/nginx.conf' }
+    - { src: 'default.conf/services/http-error.conf', dst: 'conf/services/nginx-error.conf' }
+    
+- name: Update logwatch nginx.conf from defaults
+  lineinfile: dest=/etc/logwatch/conf/services/nginx.conf regexp={{ item.regexp }} line={{ item.line }} state=present
+  with_items:
+    - { regexp: '^Title = "httpd"', line: 'Title = "nginx"' }
+    - { regexp: '^LogFile = http', line: 'LogFile = nginx' }
+
+- name: Update logwatch nginx-error.conf from defaults
+  lineinfile: dest=/etc/logwatch/conf/services/nginx-error.conf regexp={{ item.regexp }} line={{ item.line }} state=present
+  with_items:
+    - { regexp: '^Title = httpd errors', line: 'Title = nginx errors' }
+    - { regexp: '^LogFile = http-error', line: 'LogFile = nginx-error' }
+
+- name: Create nginx logfiles configs
+  copy: src={{ item.src }} dest={{ item.dst }} owner=root group=root mode=644
+  with_items:
+    - { src: 'templates/logfiles-nginx.conf', dst: '/etc/logwatch/conf/logfiles/nginx.conf' }
+    - { src: 'templates/logfiles-nginx-error.conf', dst: '/etc/logwatch/conf/logfiles/nginx-error.conf' }
