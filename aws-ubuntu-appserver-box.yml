@@ -1,4 +1,8 @@
 # aws-ubuntu-appserver-box.yml
+# Notes:
+# - For whatever reason, had to put ec2.ini, ec2.py, and ansible.cfg (with private_key_file set to aws pem)
+#   in the local directory (/etc/ansible/ didn't work). Probably due to how brew ansible installed ansible.
+# - Example Usage: ansible-playbook -i ec2.py aws-ubuntu-appserver-box.yml -e logwatch_email=abc@123.com
 
 ---
 - hosts: localhost # This will provision AWS directly so use localhost instead of hosts file
@@ -15,30 +19,30 @@
         instance_type: t2.micro
         image: ami-29ebb519
         wait: true
-        exact_count: 0
+        exact_count: 1
         count_tag:
-          Name: Ansible-Test
+          Name: ansible-web-ubuntu-t2micro-1
         instance_tags:
-          Name: Ansible-Test
+          Name: ansible-web-ubuntu-t2micro-1
+          class: ansible-static-webserver
+          Created By: Ansible (aws-ubuntu-appserver-box.yml)
         zone: us-west-2b
         region: us-west-2
 
-      register: ec2
+      register: ec2 # This is unused for now
 
-    - name: Add all instance public IPs to host group
-      add_host: hostname={{ item.public_ip }} groupname=ec2hosts
-      with_items: ec2.instances
-    
-    # The reason ec2.instances isn't populated is because it's already been created,
-    # so from here we now have to use the dynamic inventory script to proceed,
-    # unless I were to destroy the existing instance
-    - debug: var=ec2.instances
-    
-- hosts: ec2hosts
-  name: configuration play
-  user: ec2-user
-  gather_facts: true
+
+- hosts: tag_class_ansible-static-webserver
   tasks:
     - include: tasks-bootstrap-ubuntu.yml
+    - include: tasks-install-nginx.yml
+    #- include: tasks-install-fb-penalty-app.yml
+
+#- hosts: ec2hosts
+#  name: configuration play
+#  user: ec2-user
+#  gather_facts: true
+#  tasks:
+
   #- include: tasks-install-nginx.yml
   #- include: tasks-install-fb-penalty-app.yml
