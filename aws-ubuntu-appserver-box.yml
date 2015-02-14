@@ -33,9 +33,12 @@
 
 
 - hosts: tag_class_ansible-static-webserver
-  tasks:
-    - include: tasks-bootstrap-ubuntu.yml
-    - include: tasks-install-nginx.yml
+  roles:
+    - ubuntu-bootstrap
+    - static-webserver
+  #tasks:
+  #  - include: tasks-bootstrap-ubuntu.yml
+  #  - include: tasks-install-nginx.yml
     #- include: tasks-install-fb-penalty-app.yml
 
 #- hosts: ec2hosts
