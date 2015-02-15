@@ -1,39 +1,51 @@
 # aws-ubuntu-appserver-box.yml
+# Usage: 
+# -- Standard: ansible-playbook -i ec2.py aws-ubuntu-appserver-box.yml -e logwatch_email=abc@123.com -e app_name=app-name -e github_repo_path=user/repo.git
+# -- First time (or when the AWS hardware does not exist yet): 
+#    1. ansible-playbook aws-ubuntu-appserver-box.yml ...
+#    2. ./ec2.py --refresh-cache # Can skip this step if the cache timeout has expired
+#    3. ansible-playbook -i ec2.py aws-ubuntu-appserver-box.yml ...
+# Purpose: Install a static web app to an Nginx Ubuntu server.
 # Notes:
+# - The reason for "First time" usage is dynamic hosts (ec2.py) is it's more complicated
+#   to pass the new hardware instances to the software provisioning playbook all in one step
+#   (have to wait for ssh to become available, have to run ./ec2.py --refresh-cache, etc...)
 # - For whatever reason, had to put ec2.ini, ec2.py, and ansible.cfg (with private_key_file set to aws pem)
 #   in the local directory (/etc/ansible/ didn't work). Probably due to how brew ansible installed ansible.
-# - Example Usage: ansible-playbook -i ec2.py aws-ubuntu-appserver-box.yml -e logwatch_email=abc@123.com
-
 ---
 - hosts: localhost # This will provision AWS directly so use localhost instead of hosts file
   connection: local
   gather_facts: False
-  #vars:
-    #- logwatch_email: defined in hosts
-  
+  vars:
+    hardware_type: t2.micro
+    
   tasks:
     - name: Provision a set of instances
       ec2:
         key_name: deploy-oregon-key-pair
         group: deploy_SG_oregon
-        instance_type: t2.micro
+        instance_type: "{{ hardware_type }}"
         image: ami-29ebb519
         wait: true
-        exact_count: 1
+        exact_count: 0
         count_tag:
-          Name: ansible-web-ubuntu-t2micro-1
+          Name: "ansible-static-webserver-{{ app_name }}"
         instance_tags:
-          Name: ansible-web-ubuntu-t2micro-1
-          class: ansible-static-webserver
+          Name: "ansible-static-webserver-{{ app_name }}"
+          Class: "ansible-{{ hardware_type }}-ubuntu-nginx"
           Created By: Ansible (aws-ubuntu-appserver-box.yml)
         zone: us-west-2b
         region: us-west-2
+      register: ec2
 
-      register: ec2 # This is unused for now
+    ### Comment this task in to execute a later "hosts: ec2hosts" statement, note it will have to wait for ssh to be available
+    #- name: Add all instance public IPs to host group
+    #  add_host: hostname={{ item.public_ip }} groupname=ec2hosts
+    #  with_items: ec2.instances
 
-# Note: after first spinning up a server this won't execute because ec2.py is using a cached list
-#       of servers, either wait 5min or execute ./ec2.py --refresh-cache
-- hosts: tag_class_ansible-static-webserver
+# Could use "ec2hosts:tag_Name_ansible-web-ubuntu-t2micro-{{ app_name }}",
+# but it's simpler to just rerun the script on the cmdline, than try to run both hardware and software provisioning in same run
+- hosts: "tag_Name_ansible-static-webserver-{{ app_name }}"
   roles:
     - ubuntu-bootstrap
     - static-webserver
