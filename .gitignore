@@ -1,2 +1,3 @@
 *.cfg
 *.ini
+.DS_Store

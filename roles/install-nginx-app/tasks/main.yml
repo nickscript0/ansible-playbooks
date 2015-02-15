@@ -1,0 +1,43 @@
+---
+# Install a static app in nginx
+- name: Install git
+  apt: pkg=git state=installed
+  sudo: True
+# TODO: change owner/group user
+- name: Create the www directory
+  file: path=/var/www/"{{ app_name }}".com/html state=directory recurse=yes owner=ubuntu group=ubuntu
+  sudo: True
+
+- name: Install app code from git
+  git: repo=https://github.com/"{{ github_repo_path }}" dest=/var/www/"{{ app_name }}".com/html
+  sudo: True
+
+- name: Move sites-available default into app location
+  command: 
+    cp /etc/nginx/sites-available/default /etc/nginx/sites-available/"{{ app_name }}".com
+    creates="/etc/nginx/sites-available/{{ app_name }}.com"
+  sudo: True
+
+- name: Setup sites-available for app
+  sudo: True
+  lineinfile: 
+    dest=/etc/nginx/sites-available/"{{ app_name }}".com
+    regexp="^\troot (/usr/share/nginx|/var/www/{{ app_name }}.com)/html;"
+    line="\troot /var/www/{{ app_name }}.com/html;"
+    state=present
+
+- name: Link the app to sites-enabled to make live
+  sudo: True
+  command: "ln -s /etc/nginx/sites-available/{{ app_name }}.com /etc/nginx/sites-enabled/"
+  args:
+    creates: "/etc/nginx/sites-enabled/{{ app_name }}.com"
+  notify: 
+    - Restart nginx
+
+- name: Remove default sites-enabled
+  sudo: True
+  command: "rm /etc/nginx/sites-enabled/default"
+  args:
+    removes: /etc/nginx/sites-enabled/default
+  notify: 
+    - Restart nginx
