@@ -1,8 +1,8 @@
 # aws-ubuntu-appserver-box.yml
-# Usage: 
+# Usage:
 # -- Standard: ansible-playbook -i ec2.py aws-ubuntu-appserver-box.yml -e logwatch_email=abc@123.com -e app_name=app-name -e github_repo_path=user/repo.git
-# -- First time (or when the AWS hardware does not exist yet): 
-#    1. ansible-playbook aws-ubuntu-appserver-box.yml ...
+# -- First time (or when the AWS hardware does not exist yet):
+#    1. ansible-playbook aws-ubuntu-appserver-box.yml ... # this expects AWS keys in ENV variables, might have to source ~/.profile
 #    2. ./ec2.py --refresh-cache # Can skip this step if the cache timeout has expired
 #    3. ansible-playbook -i ec2.py aws-ubuntu-appserver-box.yml ...
 # Purpose: Install a static web app to an Nginx Ubuntu server.
@@ -18,7 +18,7 @@
   gather_facts: False
   vars:
     hardware_type: t2.micro
-    
+
   tasks:
     - name: Provision a set of instances
       ec2:
@@ -55,16 +55,16 @@
     #- name: Add all instance public IPs to host group
     #  add_host: hostname={{ item.public_ip }} groupname=ec2hosts
     #  with_items: ec2.instances
-    
+
 #- hosts: "ec2hosts:tag_Name_ansible-static-webserver-{{ app_name }}",
 #  pre-tasks:
 #    - name: Wait until SSH is available
-#      local_action: 
-#        module: wait_for 
+#      local_action:
+#        module: wait_for
 #        host: "{{ item.public_ip }}"
-#        port: 22 
-#        delay: 60 
-#        timeout: 320 
+#        port: 22
+#        delay: 60
+#        timeout: 320
 #        state: started
 #      with_items: launched_instances.instances
 #  roles: ...

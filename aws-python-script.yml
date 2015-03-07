@@ -1,0 +1,39 @@
+# Setup an aws server for running python scripts
+# Usage:
+#    1. ansible-playbook aws-python-script.yml # this expects AWS keys in ENV variables, might have to source ~/.profile
+#    2. ./ec2.py --refresh-cache # Can skip this step if the cache timeout has expired
+#    3. ansible-playbook -i ec2.py aws-python-script.yml -e logwatch_email=abc@123.com -e script_path=~/myscript1
+#    4. To just redeploy the script src: ansible-playbook -i ec2.py aws-python-script.yml -t deploy
+
+---
+- hosts: localhost # For AWS hardware provisioning
+  connection: local
+  gather_facts: False
+  vars:
+    hardware_type: t2.micro
+
+  tasks:
+    - name: Provision a set of instances
+      ec2:
+        key_name: deploy-oregon-key-pair
+        group: deploy_SG_oregon
+        instance_type: "{{ hardware_type }}"
+        image: ami-29ebb519
+        wait: true
+        exact_count: 1
+        count_tag:
+          Name: "ansible-python-scripts"
+        instance_tags:
+          Name: "ansible-python-scripts"
+          Class: "ansible-{{ hardware_type }}-python"
+          Created By: Ansible (aws-python-script.yml)
+        zone: us-west-2b
+        region: us-west-2
+      register: ec2
+
+
+
+- hosts: "tag_Name_ansible-python-scripts"
+  roles:
+    - ubuntu-bootstrap
+    - python-scripts

@@ -1,0 +1,18 @@
+---
+
+- name: Install nload for bandwidth monitoring
+  apt: pkg=nload state=installed
+  sudo: True
+
+- name: Install pip
+  apt: pkg=python-pip state=installed
+  sudo: True
+
+- name: Install BeautifulSoup4
+  pip: name=BeautifulSoup4
+  sudo: True
+
+- name: Copy scripts src folder to remote host
+  synchronize: src={{script_path}} dest=~/
+  tags:
+    - deploy
