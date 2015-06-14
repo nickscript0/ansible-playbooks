@@ -1,0 +1,8 @@
+# Usage: ansible-playbook -i ec2.py -e app_name=lake-home aws-install-docker-compose-app.yml
+
+---
+
+- hosts: "tag_Name_ansible-static-webserver-{{ app_name }}"
+  roles:
+    - install-docker-compose-app
+
