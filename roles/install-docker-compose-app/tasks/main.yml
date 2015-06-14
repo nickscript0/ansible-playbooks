@@ -25,4 +25,4 @@
   args:
     src: "{{ app_path }}"
     dest: /home/ubuntu/app 
-    rsync_opts: --exclude=.git,--exclude=jspm_packages
+    rsync_opts: --exclude=.git
