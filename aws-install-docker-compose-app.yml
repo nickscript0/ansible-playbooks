@@ -4,5 +4,5 @@
 
 - hosts: "tag_Name_ansible-static-webserver-{{ app_name }}"
   roles:
+    - docker
     - install-docker-compose-app
-

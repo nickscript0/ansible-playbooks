@@ -1,25 +1,5 @@
 ---
 
-- name: Install wget
-  apt: pkg=wget update_cache=yes
-  sudo: True
-
-- name: Install docker
-  # Would be better to do this via apt-get but this is the simplest for now
-  shell: wget -qO- https://get.docker.com/ | sh
-  args:
-    creates: /usr/bin/docker
-  sudo: True
-
-- name: Install docker-compose
-  shell: curl -L https://github.com/docker/compose/releases/download/1.3.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-  args:
-    creates: /usr/local/bin/docker-compose
-  sudo: True
-
-- file: path=/usr/local/bin/docker-compose mode=0655
-  sudo: True
-
 - name: Rsync src over
   synchronize:
   args:
