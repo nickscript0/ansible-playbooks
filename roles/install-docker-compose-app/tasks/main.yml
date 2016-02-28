@@ -6,3 +6,16 @@
     src: "{{ app_path }}"
     dest: /home/ubuntu/app
     rsync_opts: --exclude=.git
+
+- set_fact: app_dir="app/"
+
+# This is slow and unecessary for JS src code changes
+# - name: docker-compose build
+#   command: docker-compose -f production.yml build
+#   args:
+#     chdir: "{{ app_dir }}"
+
+- name: Start docker-compose
+  command: docker-compose -f production.yml up -d
+  args:
+    chdir: "{{ app_dir }}"
