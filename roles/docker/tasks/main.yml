@@ -18,16 +18,15 @@
   sudo: True
   register: user_task
 
+- name: Ensure docker is started
+  service: name=docker state=started
+
 - name: Install pip for docker-compose
   apt: pkg=python-pip
   sudo: True
 
-# pip ubuntu 14.04 problem: "ImportError: cannot import name IncompleteRead" see here: http://stackoverflow.com/a/31982614
-# i.e., quick fix: sudo rm -rf /usr/local/lib/python2.7/dist-packages/requests*
-
-# TODO: this isn't working, but does work if run manually
-- name: Remove incompatible requests library to fix IncompleteRead error
-  command: rm -rf /usr/local/lib/python2.7/dist-packages/requests*
+- name: Upgrade to latest pip (otherwise run into 'requests' library error)
+  pip: name=pip state=latest
   sudo: True
 
 - name: Install docker-compose

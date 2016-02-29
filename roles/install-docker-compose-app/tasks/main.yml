@@ -15,7 +15,7 @@
 #   args:
 #     chdir: "{{ app_dir }}"
 
-- name: Start docker-compose
+- name: Start docker-compose (which start build container to deploy latest js)
   command: docker-compose -f production.yml up -d
   args:
     chdir: "{{ app_dir }}"
